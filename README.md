@@ -1,23 +1,2 @@
 # meu-chatgpt-android
 Inteligente artificial
-settings.gradle
-
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-rootProject.name = "MeuChatGPT"
-include(":app")
-
