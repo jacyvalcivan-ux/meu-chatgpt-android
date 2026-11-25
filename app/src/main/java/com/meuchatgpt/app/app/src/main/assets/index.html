@@ -22,6 +22,7 @@ button{
 border:0;border-radius:10px;padding:12px;
 background:#10a37f;color:white;font-weight:bold
 }
+button:disabled{opacity:.5}
 #messages{
 flex:1;overflow:auto;padding:15px;
 display:flex;flex-direction:column;gap:12px
@@ -57,12 +58,13 @@ Como posso ajudar você hoje?
 <form id="form">
 <textarea id="entrada" rows="1"
 placeholder="Digite sua mensagem..." required></textarea>
-<button id="send">➤</button>
+<button id="send" type="submit">➤</button>
 </form>
 </footer>
 
 <script>
 const mensagens=document.getElementById("messages");
+const historico=[];
 
 function adicionar(texto,tipo){
 const div=document.createElement("div");
@@ -70,21 +72,62 @@ div.className="msg "+tipo;
 div.textContent=texto;
 mensagens.appendChild(div);
 mensagens.scrollTop=mensagens.scrollHeight;
+return div;
 }
 
 function novo(){
+historico.length=0;
 mensagens.innerHTML="";
 adicionar("Olá! Como posso ajudar?","bot");
 }
 
 document.getElementById("form").onsubmit=async function(e){
 e.preventDefault();
+
 const campo=document.getElementById("entrada");
+const botao=document.getElementById("send");
 const texto=campo.value.trim();
+
 if(!texto)return;
+
 adicionar(texto,"user");
+historico.push({role:"user",content:texto});
 campo.value="";
-adicionar("Sua mensagem foi recebida! Em breve poderemos conectar a IA.","bot");
+botao.disabled=true;
+
+const carregando=adicionar("Pensando...","bot");
+
+try{
+const resposta=await fetch(
+"https://meu-chatgpt-android.onrender.com/api/chat",
+{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({messages:historico})
+}
+);
+
+const dados=await resposta.json();
+
+if(!resposta.ok){
+throw new Error(dados.error || "Não foi possível obter resposta.");
+}
+
+if(!dados.reply){
+throw new Error("O servidor não retornou uma resposta.");
+}
+
+carregando.textContent=dados.reply;
+historico.push({role:"assistant",content:dados.reply});
+
+}catch(erro){
+carregando.textContent="Erro: "+erro.message;
+historico.pop();
+
+}finally{
+botao.disabled=false;
+campo.focus();
+}
 };
 </script>
 </body>
