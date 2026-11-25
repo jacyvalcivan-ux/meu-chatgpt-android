@@ -5,7 +5,7 @@ import cors from "cors";
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
 app.get("/", (req, res) => {
   res.send("Meu ChatGPT está funcionando!");
@@ -17,11 +17,22 @@ app.post("/api/chat", async (req, res) => {
 
     if (!key) {
       return res.status(500).json({
-        error: "Chave da OpenAI não configurada."
+        error: "Chave da OpenAI não configurada no Render."
       });
     }
 
-    const messages = req.body.messages || [];
+    const messages = req.body.messages;
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({
+        error: "Nenhuma mensagem foi enviada."
+      });
+    }
+
+    const input = messages.map(message => ({
+      role: message.role === "assistant" ? "assistant" : "user",
+      content: String(message.content || "")
+    }));
 
     const response = await fetch(
       "https://api.openai.com/v1/responses",
@@ -33,8 +44,8 @@ app.post("/api/chat", async (req, res) => {
         },
         body: JSON.stringify({
           model: "gpt-5.5",
-          instructions: "Responda em português do Brasil.",
-          input: messages
+          instructions: "Você é o Meu ChatGPT, um assistente inteligente, educado e prestativo. Responda em português do Brasil.",
+          input
         })
       }
     );
@@ -42,8 +53,10 @@ app.post("/api/chat", async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
+      console.error("Erro OpenAI:", data.error?.message);
+
       return res.status(response.status).json({
-        error: data.error?.message || "Erro na OpenAI"
+        error: data.error?.message || "Erro na conexão com a OpenAI."
       });
     }
 
@@ -53,13 +66,21 @@ app.post("/api/chat", async (req, res) => {
       .map(item => item.text)
       .join("\n");
 
-    res.json({ reply });
+    return res.json({
+      reply: reply || "Não consegui gerar uma resposta."
+    });
 
   } catch (error) {
-    res.status(500).json({
-      error: "Erro interno do servidor."
+    console.error("Erro interno:", error);
+
+    return res.status(500).json({
+      error: "Falha ao comunicar com o servidor."
     });
   }
 });
 
-app.listen(process.env.PORT || 3000);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Meu ChatGPT ativo na porta ${PORT}`);
+});
