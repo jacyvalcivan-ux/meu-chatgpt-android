@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meu ChatGPT</title>
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;background:#212121;color:white;
+font-family:Arial,sans-serif;
+height:100vh;display:flex;flex-direction:column
+}
+header{
+padding:18px;background:#171717;
+display:flex;justify-content:space-between;
+align-items:center
+}
+h3{margin:0;color:#10a37f}
+button{
+border:0;border-radius:10px;padding:12px;
+background:#10a37f;color:white;font-weight:bold
+}
+#messages{
+flex:1;overflow:auto;padding:15px;
+display:flex;flex-direction:column;gap:12px
+}
+.msg{padding:14px;border-radius:12px;
+max-width:90%;white-space:pre-wrap;line-height:1.5}
+.user{background:#343434;align-self:flex-end}
+.bot{background:#303030;align-self:flex-start}
+footer{padding:12px;background:#171717}
+form{display:flex;gap:8px}
+textarea{
+flex:1;background:#303030;color:white;
+border:1px solid #555;border-radius:12px;
+padding:13px;font-size:16px;resize:none
+}
+#send{font-size:20px}
+</style>
+</head>
+<body>
+<header>
+<h3>✳ Meu ChatGPT</h3>
+<button onclick="novo()">Nova conversa</button>
+</header>
+
+<main id="messages">
+<div class="msg bot">
+Olá! Sou seu assistente virtual.
+Como posso ajudar você hoje?
+</div>
+</main>
+
+<footer>
+<form id="form">
+<textarea id="entrada" rows="1"
+placeholder="Digite sua mensagem..." required></textarea>
+<button id="send">➤</button>
+</form>
+</footer>
+
+<script>
+const mensagens=document.getElementById("messages");
+
+function adicionar(texto,tipo){
+const div=document.createElement("div");
+div.className="msg "+tipo;
+div.textContent=texto;
+mensagens.appendChild(div);
+mensagens.scrollTop=mensagens.scrollHeight;
+}
+
+function novo(){
+mensagens.innerHTML="";
+adicionar("Olá! Como posso ajudar?","bot");
+}
+
+document.getElementById("form").onsubmit=async function(e){
+e.preventDefault();
+const campo=document.getElementById("entrada");
+const texto=campo.value.trim();
+if(!texto)return;
+adicionar(texto,"user");
+campo.value="";
+adicionar("Sua mensagem foi recebida! Em breve poderemos conectar a IA.","bot");
+};
+</script>
+</body>
+</html>
